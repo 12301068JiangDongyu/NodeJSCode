@@ -44,19 +44,6 @@ app.use(function(req,res,next){
 });
 
 app.use(function(req,res,next){
-	if(req.pathname === '/'){
-		res.send('<ul>'+
-			    '<li><a href="/news?type=1&id=1">新闻一</a></li>'+
-			    '<li><a href="/news?type=1&id=2">新闻二</a></li>'+
-			    '<li><a href="/news?type=1&id=3">新闻三</a></li>'+
-			'</ul>');
-
-	}else{
-		next();
-	}
-});
-
-app.use(function(req,res,next){
 	if(req.pathname === '/news'&&req.query.type === '1'){
 		res.send(getNews(req.query.id));
 
