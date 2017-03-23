@@ -12,6 +12,7 @@ function getNews(id){
 	return NEWS[id] || '文章不存在';
 }
 
+//使用connect
 var app = connect();
 
 app.use(function(req,res,next){

@@ -17,6 +17,7 @@ var server = http.createServer(function(req,res){
 		res.end(html);
 	}
 
+    //使用url进行解析
 	var info = parseUrl(req.url,true);
 	req.pathname = info.pathname;
 	req.query = info.query;
