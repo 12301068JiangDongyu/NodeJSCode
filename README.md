@@ -10,3 +10,6 @@
 * news.js 简单新闻列表，url参数多一个
 * news_url.js HTTP编写服务器代码，使用url模块完成
 * news_connect.js HTTP编写服务器代码，使用connect框架改造
+### myNote
+* index.js 页面跳转及主要业务逻辑
+* checkLogin.js 检查是否已登录
