@@ -13,3 +13,7 @@
 ### myNote
 * index.js 页面跳转及主要业务逻辑
 * checkLogin.js 检查是否已登录
+### cookie
+* index.js 熟悉cookie的各个属性
+### E-Session
+* index.js Express-session的使用，session中间件探究
