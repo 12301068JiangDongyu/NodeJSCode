@@ -6,7 +6,9 @@ var crypto = require('crypto');
 var session = require('express-session');
 var moment = require('moment');
 var flash = require('connect-flash');
-
+var Waterline = require('waterline');
+var mysqlAdapter = require('sails-mysql');
+var mongoAdapter = require('sails-mongo');
 //引入mongoose
 var mongoose = require('mongoose');
 
@@ -14,6 +16,47 @@ var mongoose = require('mongoose');
 var models = require('./models/models');
 var checkLogin = require('./checkLogin.js');
 
+var Model = require('./models/model');
+
+// 适配器
+var adapters = {
+    mongo: mongoAdapter,
+    mysql: mysqlAdapter,
+    default: 'mongo'
+};
+
+// 连接设置
+var connections = {
+    mongo: {
+        adapter: 'mongo',
+        url: 'mongodb://localhost:27017/notes'
+    },
+    mysql: {
+        adapter: 'mysql',
+        url: 'mysql://root:123456@localhost/notes'
+    }
+};
+
+var orm = new Waterline();
+
+// 加载数据集合
+orm.loadCollection(Model.User);
+
+var config = {
+    adapters: adapters,
+    connections: connections
+}
+
+var ModelsInstance;
+
+orm.initialize(config, function(err, Models){
+    if(err) {
+        console.error('orm initialize failed.', err)
+        return;
+    }
+
+    ModelsInstance = Models;
+});
 
 //使用mongoose连接服务
 mongoose.connect('mongodb://localhost:27017/notes');
@@ -153,42 +196,70 @@ app.post('/register',function(req,res){
 		req.flash('error','两次输入的密码不一致！');
         return res.redirect('/register');
 	}
-
-	//检查用户名是否已经存在，如果不存在，则保存该记录
-	User.findOne({username:username},function(err,user){
-		if(err){
+    
+    ModelsInstance.collections.user.find({username: username}).exec(function(err, user) {
+    	if(err){
 			console.log(err);
 			return res.redirect('/register');
 		}
 
-		if(user){
+		if(user.length != 0){
 			console.log('用户名已经存在！');
 			req.flash('error','用户名已经存在！');
 			return res.redirect('/register');
 		}
 
-        //对密码进行md5加密
+		//对密码进行md5加密
 		var md5 = crypto.createHash('md5'),
 		    md5password = md5.update(password).digest('hex');
 
-		//新建user对象用于保存数据
-	    var newUser = new User({
-	    	username:username,
-	    	password:md5password
-	    });
-
-	    newUser.save(function(err,doc){
-	    	if(err){
+		ModelsInstance.collections.user.create({username: username, password: md5password}, function(err, user) {
+           if(err){
 	    		console.log(err);
 	    		return res.redirect('/register');
 	    	}
 	    	console.log('注册成功！');
 	    	req.flash('success','注册成功！');
 	    	return res.redirect('/');
+        });
 
-	    });
+    })
 
-	});
+	// //检查用户名是否已经存在，如果不存在，则保存该记录
+	// User.findOne({username:username},function(err,user){
+	// 	if(err){
+	// 		console.log(err);
+	// 		return res.redirect('/register');
+	// 	}
+
+	// 	if(user){
+	// 		console.log('用户名已经存在！');
+	// 		req.flash('error','用户名已经存在！');
+	// 		return res.redirect('/register');
+	// 	}
+
+ //        //对密码进行md5加密
+	// 	var md5 = crypto.createHash('md5'),
+	// 	    md5password = md5.update(password).digest('hex');
+
+	// 	//新建user对象用于保存数据
+	//     var newUser = new User({
+	//     	username:username,
+	//     	password:md5password
+	//     });
+
+	//     newUser.save(function(err,doc){
+	//     	if(err){
+	//     		console.log(err);
+	//     		return res.redirect('/register');
+	//     	}
+	//     	console.log('注册成功！');
+	//     	req.flash('success','注册成功！');
+	//     	return res.redirect('/');
+
+	//     });
+
+	// });
 
 
 });
@@ -207,13 +278,13 @@ app.post('/login',function(req,res){
 	var username = req.body.username,
 	    password = req.body.password;
 
-	User.findOne({username:username},function(err,user){
-		if(err){
+	ModelsInstance.collections.user.find({username: username}).exec(function(err, user) {
+        if(err){
 			console.log(err);
 			return res.redirect('/login');
 		}
 
-		if(!user){
+		if(user.length == 0){
 			console.log('用户名不存在!');
 			req.flash('error','用户名或密码错误！');
 			return res.redirect('/login');
@@ -223,6 +294,8 @@ app.post('/login',function(req,res){
 		var md5 = crypto.createHash('md5'),
 		    md5password = md5.update(password).digest('hex');
 
+        user = user[0];
+        
 		if(user.password !== md5password){
 			console.log('密码错误！');
 			req.flash('error','用户名或密码错误！');
@@ -235,7 +308,37 @@ app.post('/login',function(req,res){
 		req.session.user = user;
 		return res.redirect('/');
 
-	});
+	})
+
+	// User.findOne({username:username},function(err,user){
+	// 	if(err){
+	// 		console.log(err);
+	// 		return res.redirect('/login');
+	// 	}
+
+	// 	if(!user){
+	// 		console.log('用户名不存在!');
+	// 		req.flash('error','用户名或密码错误！');
+	// 		return res.redirect('/login');
+	// 	}
+
+ //        //对密码进行md5加密
+	// 	var md5 = crypto.createHash('md5'),
+	// 	    md5password = md5.update(password).digest('hex');
+
+	// 	if(user.password !== md5password){
+	// 		console.log('密码错误！');
+	// 		req.flash('error','用户名或密码错误！');
+	// 		return res.redirect('/login');
+	// 	}
+	// 	console.log('登录成功！');
+	// 	req.flash('success','登录成功！');
+	// 	user.password = null;
+	// 	delete user.password;
+	// 	req.session.user = user;
+	// 	return res.redirect('/');
+
+	// });
 
 });
 

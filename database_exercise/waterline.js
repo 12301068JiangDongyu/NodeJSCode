@@ -75,4 +75,7 @@ orm.initialize(config, function(err, models){
   models.collections.user.create({username: 'Sid'}, function(err, user){
     console.log('after user.create, err, user:', err, user);
   });
+  models.collections.user.find({username: 'Sid'}).exec(function(err, user){
+    console.log('after user.find, err, user:', err, user);
+  });
 });

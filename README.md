@@ -13,6 +13,8 @@
 ### myNote
 * index.js 页面跳转及主要业务逻辑
 * checkLogin.js 检查是否已登录
+* model.js 使用waterline
+* models.js 使用mongoose
 ### cookie
 * index.js 熟悉cookie的各个属性
 ### E-Session
