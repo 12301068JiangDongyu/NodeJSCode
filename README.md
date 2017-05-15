@@ -19,6 +19,7 @@
 * index.js 熟悉cookie的各个属性
 ### E-Session
 * index.js Express-session的使用，session中间件探究
+* MyFileStore.js 根据express-session的store接口实现一个存储到文件的引擎
 ### database_exercise
 * mysql.js 操作MySQL数据库
 * mysql_pool.js 使用MySQL连接池
