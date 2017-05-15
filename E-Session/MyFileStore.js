@@ -2,7 +2,12 @@ var fs = require('fs');
 var path=require('path');
 
 module.exports = function (session) {
+
     var Store = session.Store;
+
+    /**
+    * 构造函数
+    */
     function MyFileStore(options) {
         var self = this;
         options = options || {};
@@ -12,7 +17,7 @@ module.exports = function (session) {
     };
 
     /**
-     * Inherit from Store
+     * FilMyeStore继承于session中的Store对象
      */
     MyFileStore.prototype.__proto__ = Store.prototype;
 
@@ -79,15 +84,15 @@ function defaultOption(options) {
     var NOOP_FN = function () {
     };
     return {
-        path: path.normalize(options.path || './sessions'),
-        ttl: options.ttl || 3600,
+        path: path.normalize(options.path || './sessions'),// session保存目录
+        ttl: options.ttl || 3600,// session过期时间（秒），默认为3600
         retries: options.retries || 5,
         factor: options.factor || 1,
         minTimeout: options.minTimeout || 50,
         maxTimeout: options.maxTimeout || 100,
         filePattern: /\.json$/,
-        reapInterval: options.reapInterval || 3600,
-        reapMaxConcurrent: options.reapMaxConcurrent || 10,
+        reapInterval: options.reapInterval || 3600,// 定期检测session过期时间（秒），默认为3600
+        reapMaxConcurrent: options.reapMaxConcurrent || 10,// 在定期检测与删除session时的并发数
         reapAsync: options.reapAsync || false,
         reapSyncFallback: options.reapSyncFallback || false,
         logFn: options.logFn || console.log || NOOP_FN,
