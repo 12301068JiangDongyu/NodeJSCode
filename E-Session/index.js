@@ -4,6 +4,7 @@ var session = require('express-session');
 var uuid = require('uuid');
 var cookieParser = require('cookie-parser');
 var clone = require('clone');
+var MyFileStore = require('./MyFileStore.js')(session);
 
 var app = express();
 
@@ -13,28 +14,36 @@ var app = express();
 // 	saveUninitialized: true
 // }));
 
-function my_session(){
-	var data = {};
-	return function(req,res,next){
-		var id = req.signedCookies.session_id || uuid.v4();
-		res.cookie('session_id',id,{
-			maxAge:600000,
-			path:'/',
-			httpOnly:true,
-			signed:true
-		});
-		req.session = clone(data[id] || {});
-		res.on('finish',function(){
-			console.log('save session: ',req.session);
-			data[id] = clone(req.session);
-		});
-		next();
-	};
+// function my_session(){
+// 	var data = {};
+// 	return function(req,res,next){
+// 		var id = req.signedCookies.session_id || uuid.v4();
+// 		res.cookie('session_id',id,{
+// 			maxAge:600000,
+// 			path:'/',
+// 			httpOnly:true,
+// 			signed:true
+// 		});
+// 		req.session = clone(data[id] || {});
+// 		res.on('finish',function(){
+// 			console.log('save session: ',req.session);
+// 			data[id] = clone(req.session);
+// 		});
+// 		next();
+// 	};
 
-}
+// }
+
+app.use(session({
+  secret: 'laolao',
+  store: new MyFileStore('./fileSession'),
+  saveUninitialized:true,
+  resave:true
+}));
+
 
 app.use(cookieParser('asdasdqweqwe'));
-app.use(my_session());
+//app.use(my_session());
 
 app.use(function(req,res,next){
 	var views = req.session.views;
@@ -49,25 +58,25 @@ app.use(function(req,res,next){
 	next();
 });
 
-app.use('/',function(req,res,next){
-	var num = req.session.num;
-	if(!num){
-		num = req.session.num = 0;
-	}
-	req.session.num = num +1;
-	console.log('=====这是第' + req.session.num + '次调用=====');
-	next();
-});
+// app.use('/',function(req,res,next){
+// 	var num = req.session.num;
+// 	if(!num){
+// 		num = req.session.num = 0;
+// 	}
+// 	req.session.num = num +1;
+// 	console.log('=====这是第' + req.session.num + '次调用=====');
+// 	next();
+// });
 
-app.use(function(req,res,next){
-	console.log(".........");
-	next();
-})
+// app.use(function(req,res,next){
+// 	console.log(".........");
+// 	next();
+// })
 
-app.use(function(req,res,next){
-	console.log("!!!!!!!!!");
-	next();
-})
+// app.use(function(req,res,next){
+// 	console.log("!!!!!!!!!");
+// 	next();
+// })
 
 app.get('/foo',function(req,res,next){
 	res.send('you viewed this page ' + req.session.views['/foo'] + ' times');
