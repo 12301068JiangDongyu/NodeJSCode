@@ -21,44 +21,79 @@ var connections = {
   },
   mysql: {
     adapter: 'mysql',
-    url: 'mysql://root:123456@localhost/waterlinesample'
+    url: 'mysql://root:123456@localhost/notes'
   }
 };
 
-// 数据集合
 var User = Waterline.Collection.extend({
-  identity: 'user',
-  connection: 'mysql',
-  schema: true,
-  attributes: {
-    username: {
-      type: 'string',
-      // 校验器
-      required: true
+    identity: 'user',
+    connection: 'mysql',
+    schema: true,
+    attributes: {
+        username: {
+            type: 'string',
+            required: true
+        },
+        password: {
+            type: 'string',
+            required: true           
+        },
+        email: {
+            type: 'email',
+            required: false
+        },
+        createTime: {
+            type: 'date'
+        }
     },
-    birthday: {
-      type: 'date',
-      after: new Date('1900-01-01'),
-      before: function() {
-        return new Date();
-      }
-    },
-    createTime: {
-      type: 'date'
+    beforeCreate: function(value, cb) {
+        value.createTime = new Date();
+        return cb();
     }
-  },
-  // 生命周期回调
-  beforeCreate: function(value, cb){
-    value.createTime = new Date();
-    console.log('beforeCreate executed');
-    return cb();
-  }
+
+});
+
+var Note = Waterline.Collection.extend({
+    identity: 'note',
+    connection: 'mysql',
+    schema: true,
+    attributes: {
+        _id: {
+            type: 'string',
+            primaryKey:true,
+            autoIncrement: true
+        },
+        title: {
+            type: 'string',
+            required: true
+        },
+        author: {
+            type: 'string',
+            required: true           
+        },
+        tag: {
+            type: 'string',
+            required: true           
+        },
+        content: {
+            type: 'string',
+            required: false
+        },
+        createTime: {
+            type: 'date'
+        }
+    },
+    beforeCreate: function(value, cb) {
+        value.createTime = new Date();
+        return cb();
+    }
 });
 
 var orm = new Waterline();
 
 // 加载数据集合
 orm.loadCollection(User);
+orm.loadCollection(Note);
 
 var config = {
   adapters: adapters,
@@ -72,10 +107,15 @@ orm.initialize(config, function(err, models){
   }
 
   // console.log('models:', models);
-  models.collections.user.create({username: 'Sid'}, function(err, user){
-    console.log('after user.create, err, user:', err, user);
+  // models.collections.user.create({username: 'Sid'}, function(err, user){
+  //   console.log('after user.create, err, user:', err, user);
+  // });
+
+  models.collections.note.find({_id:'1'}).exec(function(err,art){
+    console.log('after user.find, err, art:', err, art);
   });
-  models.collections.user.find({username: 'Sid'}).exec(function(err, user){
-    console.log('after user.find, err, user:', err, user);
-  });
+
+  // models.collections.note.find({author:'hahaha'}).exec(function(err, allNotes){
+  //   console.log('after note.find, err, allNotes:', err, allNotes);
+  // });
 });

@@ -41,6 +41,7 @@ var orm = new Waterline();
 
 // 加载数据集合
 orm.loadCollection(Model.User);
+orm.loadCollection(Model.Note);
 
 var config = {
     adapters: adapters,
@@ -104,8 +105,9 @@ app.get('/',checkLogin.noLogin);
 app.get('/login',checkLogin.hasLogin);
 app.get('/register',checkLogin.hasLogin);
 app.get('/',function(req,res){
-	Note.find({author:req.session.user.username})
-	    .exec(function(err,allNotes){
+	var username = req.session.user.username;
+
+	ModelsInstance.collections.note.find({author:username}).exec(function(err, allNotes) {
 	    	if(err){
 	    		console.log(err);
 	    		return res.redirect('/');
@@ -122,13 +124,14 @@ app.get('/',function(req,res){
 
 app.get('/detail/:_id',function(req,res){
 	console.log('查看笔记！');
-	Note.findOne({_id:req.params._id})
-		.exec(function(err,art){
+	console.log(req.params._id);
+	ModelsInstance.collections.note.find({_id:req.params._id}).exec(function(err,art){
 			if(err){
 				console.log(err);
 				return res.redirect('/');
 			}
 			if(art){
+				art = art[0];
 				res.render('detail',{
 					title: '笔记详情',
 					user: req.session.user,
@@ -364,7 +367,8 @@ app.post('/post',function(req,res){
 		content: req.body.content
 	});
 
-	note.save(function(err,doc){
+    ModelsInstance.collections.note.create({title: req.body.title, author: req.session.user.username,tag: req.body.tag, content: req.body.content}, function(err, note) {
+	// note.save(function(err,doc){
 		if(err){
 			console.log(err);
 			return res.redirect('/post');
